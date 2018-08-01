@@ -154,18 +154,18 @@ about='`oneliner` - Wrapper for displaying oneline rofi menus
 SYNOPSIS
 --------
 
-`oneliner` [`-v`|`-h`]
-`oneliner` `-i` [pel]
-`oneliner` `-x` XPOS
-`oneliner` `-y` YPOS
-`oneliner` `-w` WIDTH[%]
-`oneliner` `-o` OPTIONS
-`oneliner` `-p` prompt
-`oneliner` `-n` 
-`oneliner` `-c` d|l|r
-`oneliner` `-f` filter
-`oneliner` `-l` LIST
-`oneliner` `-t` TOP
+`oneliner` [`-v`|`-h`]  
+`oneliner` `-i` [pel]  
+`oneliner` `-x` XPOS  
+`oneliner` `-y` YPOS  
+`oneliner` `-w` WIDTH[%]  
+`oneliner` `-o` OPTIONS  
+`oneliner` `-p` prompt  
+`oneliner` `-n`   
+`oneliner` `-c` d|l|r  
+`oneliner` `-f` filter  
+`oneliner` `-l` LIST  
+`oneliner` `-t` TOP  
 
 
 DESCRIPTION
