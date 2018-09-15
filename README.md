@@ -3,18 +3,19 @@
 SYNOPSIS
 --------
 
-`oneliner` [`-v`|`-h`]  
-`oneliner` `-i` [pel]  
-`oneliner` `-x` XPOS  
-`oneliner` `-y` YPOS  
-`oneliner` `-w` WIDTH[%]  
-`oneliner` `-o` OPTIONS  
-`oneliner` `-p` prompt  
-`oneliner` `-n`   
-`oneliner` `-c` d|l|r  
-`oneliner` `-f` filter  
-`oneliner` `-l` LIST  
-`oneliner` `-t` TOP  
+`oneliner` `-v`|`--version`  
+`oneliner` `-h`|`--help`  
+`oneliner` `-i`|`--include` [pel]  
+`oneliner` `-x`|`--xpos` XPOS  
+`oneliner` `-y`|`--ypos` YPOS  
+`oneliner` `-w`|`--width` WIDTH[%]  
+`oneliner` `-o`|`--options` OPTIONS  
+`oneliner` `-p`|`--prompt` prompt  
+`oneliner` `-n`|`--titlebar`   
+`oneliner` `-c`|`--color` d|l|r  
+`oneliner` `-f`|`--filter` filter  
+`oneliner` `-l`|`--list` LIST  
+`oneliner` `-t`|`--top` TOP  
 
 
 DESCRIPTION
@@ -41,7 +42,13 @@ one can specify that with the `-i` option.
 OPTIONS
 -------
 
-`-i` [pel]  
+`-v`|`--version`  
+Show version and exit.
+
+`-h`|`--help`  
+Show help and exit.
+
+`-i`|`--include` [pel]  
 (default: pel)  
 Argument for this option is a string containing the
 characters `pel`. It will force the appearance of the
@@ -57,10 +64,10 @@ The command above would have the same result as the first
 example, since p (prompt) is left out from the argument
 to `-i`  
 
-`-x` XPOS  
-`-y` YPOS  
-`-w` WIDTH[%]  
-`-n`   
+`-x`|`--xpos` XPOS  
+`-y`|`--ypos` YPOS  
+`-w`|`--width` WIDTH[%]  
+`-n`|`--titlebar`   
 (default: `-x 0, -y 0, -w 100%`)
 These options override the default position and width
 of the menu. If `-n` is set, the menu will have the
@@ -73,31 +80,31 @@ If the argument to `-w` (width) ends with a `%` character
 the width will be that many percentages of the screenwidth.
 Without `%` absolute width in pixels will be used.  
 
-`-o` OPTIONS  
+`-o`|`--options` OPTIONS  
 The argument is a string of aditional options to pass
 to `rofi`  
 
 
-`-c` d|l  
+`-c`|`--color` d|l  
 specify d or l for dark or light theme.
 
-`-f` filter  
-`-p` prompt  
+`-f`|`--filter` filter  
+`-p`|`--prompt` prompt  
 
-`-l` LIST  
+`-l`|`--list` LIST  
 Every line in LIST will be displayed as a menu item.
 The order will be the same as entered if not `-t` 
 is set.
 
-`-t` TOP  
+`-t`|`--top` TOP  
 If a line in TOP matches a line in LIST, that line
 will have priority in the menu.
 
 Example:  
 
 ``` text
-$ oneliner -l "$(print %sn one two three four)" \
-           -t "$(print %sn two four)"
+$ oneliner -l "$(printf '%s\n' one two three four)" \
+           -t "$(printf '%s\n' two four)"
 ```
 
 will result in a list looking like this:  
@@ -106,5 +113,5 @@ will result in a list looking like this:
 DEPENDENCIES
 ------------
 
-rofi
-i3list
+rofi  
+i3list  

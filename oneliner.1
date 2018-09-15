@@ -1,0 +1,174 @@
+.TH ONELINER 1 2018\-07\-21 Linux "User Manuals"
+.SH NAME
+.PP
+\fB\fConeliner\fR \- Wrapper for displaying oneline rofi menus
+
+.SH SYNOPSIS
+.PP
+\fB\fConeliner\fR \fB\fC\-v\fR|\fB\fC\-\-version\fR
+.br
+\fB\fConeliner\fR \fB\fC\-h\fR|\fB\fC\-\-help\fR
+.br
+\fB\fConeliner\fR \fB\fC\-i\fR|\fB\fC\-\-include\fR [pel]
+.br
+\fB\fConeliner\fR \fB\fC\-x\fR|\fB\fC\-\-xpos\fR XPOS
+.br
+\fB\fConeliner\fR \fB\fC\-y\fR|\fB\fC\-\-ypos\fR YPOS
+.br
+\fB\fConeliner\fR \fB\fC\-w\fR|\fB\fC\-\-width\fR WIDTH[%]
+.br
+\fB\fConeliner\fR \fB\fC\-o\fR|\fB\fC\-\-options\fR OPTIONS
+.br
+\fB\fConeliner\fR \fB\fC\-p\fR|\fB\fC\-\-prompt\fR prompt
+.br
+\fB\fConeliner\fR \fB\fC\-n\fR|\fB\fC\-\-titlebar\fR
+.br
+\fB\fConeliner\fR \fB\fC\-c\fR|\fB\fC\-\-color\fR d|l|r
+.br
+\fB\fConeliner\fR \fB\fC\-f\fR|\fB\fC\-\-filter\fR filter
+.br
+\fB\fConeliner\fR \fB\fC\-l\fR|\fB\fC\-\-list\fR LIST
+.br
+\fB\fConeliner\fR \fB\fC\-t\fR|\fB\fC\-\-top\fR TOP
+
+.SH DESCRIPTION
+.PP
+\fB\fConeliner\fR wraps the options i use the most with
+\fB\fCrofi\fR and make it easy to set different colorthemes
+and positions for the menu.
+
+.PP
+It is also possible to pass a LIST, in which each line
+will be displayed as an item in the menu. The list
+can be \fIsorted\fP with the TOP option.
+
+.PP
+The foundation for the appearance of the menus are
+the themefiles (\fIoneliner.rasi\fP|\fIthemevars.rase\fP),
+but depending on the options passed to \fB\fConeliner\fR
+certain values of the themefiles will get overwritten.
+
+.PP
+If no prompt (\fB\fC\-p\fR) is given, the prompt element will be
+completely removed from the menu, likewise with the list.
+To force which parts of the menu to be visible or hidden,
+one can specify that with the \fB\fC\-i\fR option.
+
+.SH OPTIONS
+.PP
+\fB\fC\-v\fR|\fB\fC\-\-version\fR
+.br
+Show version and exit.
+
+.PP
+\fB\fC\-h\fR|\fB\fC\-\-help\fR
+.br
+Show help and exit.
+
+.PP
+\fB\fC\-i\fR|\fB\fC\-\-include\fR pel
+\[la]default: pel\[ra]
+.br
+Argument for this option is a string containing the
+characters \fB\fCpel\fR\&. It will force the appearance of the
+menu. Example:
+
+.PP
+\fB\fC$ oneliner \-i pl \-l "$(printf %sn one two three)"\fR
+.br
+Without e (entrybox), the entrybox of the menu will
+not be available, only the list. The prompt will also
+be hidden with the example above.
+
+.PP
+\fB\fC$ oneliner \-i l \-l "$(printf %sn one two three)" \-p "enter: "\fR
+.br
+The command above would have the same result as the first
+example, since p (prompt) is left out from the argument
+to \fB\fC\-i\fR
+
+.PP
+\fB\fC\-x\fR|\fB\fC\-\-xpos\fR XPOS
+.br
+\fB\fC\-y\fR|\fB\fC\-\-ypos\fR YPOS
+.br
+\fB\fC\-w\fR|\fB\fC\-\-width\fR WIDTH[%]
+.br
+\fB\fC\-n\fR|\fB\fC\-\-titlebar\fR
+.br
+(default: \fB\fC\-x 0, \-y 0, \-w 100%\fR)
+These options override the default position and width
+of the menu. If \fB\fC\-n\fR is set, the menu will have the
+same position as the top left corner of the active window
+and the same width as the window. If both \fB\fC\-n\fR and
+\fB\fC\-y 50\fR is set, the menu will be placed 50pixels below
+the active window.
+
+.PP
+If the argument to \fB\fC\-w\fR (width) ends with a \fB\fC%\fR character
+the width will be that many percentages of the screenwidth.
+Without \fB\fC%\fR absolute width in pixels will be used.
+
+.PP
+\fB\fC\-o\fR|\fB\fC\-\-options\fR OPTIONS
+.br
+The argument is a string of aditional options to pass
+to \fB\fCrofi\fR
+
+.PP
+\fB\fC\-c\fR|\fB\fC\-\-color\fR d|l
+.br
+specify d or l for dark or light theme.
+
+.PP
+\fB\fC\-f\fR|\fB\fC\-\-filter\fR filter
+.br
+\fB\fC\-p\fR|\fB\fC\-\-prompt\fR prompt
+
+.PP
+\fB\fC\-l\fR|\fB\fC\-\-list\fR LIST
+.br
+Every line in LIST will be displayed as a menu item.
+The order will be the same as entered if not \fB\fC\-t\fR
+is set.
+
+.PP
+\fB\fC\-t\fR|\fB\fC\-\-top\fR TOP
+.br
+If a line in TOP matches a line in LIST, that line
+will have priority in the menu.
+
+.PP
+Example:
+
+.PP
+.RS
+
+.nf
+$ oneliner \-l "$(printf '%s\\n' one two three four)" \\
+           \-t "$(printf '%s\\n' two four)"
+
+.fi
+.RE
+
+.PP
+will result in a list looking like this:
+.br
+\fB\fCtwo four one three\fR
+
+.SH DEPENDENCIES
+.PP
+rofi
+.br
+i3list
+
+.SH AUTHOR
+.PP
+budRich 
+\[la]robstenklippa@gmail.com\[ra]
+
+\[la]https://budrich.github.io\[ra]
+
+.SH SEE ALSO
+.PP
+rofi(1), i3list(1)

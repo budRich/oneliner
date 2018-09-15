@@ -1,51 +1,89 @@
-#!/bin/bash
+#!/usr/bin/env bash
 
-NAME="oneliner"
-VERSION="0.001"
-AUTHOR="budRich"
-CONTACT='robstenklippa@gmail.com'
-CREATED="2018-07-21"
-UPDATED="2018-07-21"
-
-THIS_DIR="$( cd "$( dirname "$(readlink "${BASH_SOURCE[0]}")" )" && pwd )"
+__name="oneliner"
+__version="0.002"
+__author="budRich"
+__contact='robstenklippa@gmail.com'
+__created="2018-07-21"
+__updated="2018-09-15"
 
 main(){
-  incstring=pel
+  local option optarg kol lopt sopt o
+
+  # globals
+  __incstring=pel
+  __cmd="rofi -dmenu -theme <(themefile) " 
+
   declare -A i3list
   eval "$(i3list)"
-  cmd="rofi -dmenu -theme <(themefile) " 
 
-  while getopts :vhi:x:y:w:c:p:o:l:t:nf: option; do
-    case "${option}" in
-      i) incstring="${OPTARG}" ;;
-      x) xpos=${OPTARG}        ;;
-      y) ypos=${OPTARG}        ;;
-      w) width=${OPTARG}       ;;
-      o) opts="${OPTARG}"      ;;
-      p) prompt="${OPTARG}"    ;;
-      n) 
+  declare -A options
 
-         xpos=$((i3list[AWX]-i3list[WSX]))
-         ypos=$((i3list[AWY]-i3list[WSY]))
-         width=${i3list[AWW]}
+  options[version]=v
+  options[help]=h::
+  options[xpos]=x:
+  options[ypos]=y:
+  options[width]=w:
+  options[color]=c:
+  options[filter]=f:
+  options[include]=i:
+  options[options]=o:
+  options[prompt]=p:
+  options[titlebar]=n
+  options[list]=l:
+  options[top]=t:
 
-         ;;
-
-      c) colors=${OPTARG}      ;;
-      f) cmd+="-filter '${OPTARG}' "      ;;
-      l) list="${OPTARG}"      ;;
-      t) top="${OPTARG}"       ;;
-      
-      v) printf '%s\n' \
-           "$NAME - version: $VERSION" \
-           "updated: $UPDATED by $AUTHOR"
-         exit ;;
-      h|*) printinfo && exit ;;
-    esac
+  for o in "${!options[@]}"; do
+    [[ ${options[$o]} =~ ([:]*)$ ]] \
+      && kol="${BASH_REMATCH[1]:-}"
+    lopt+="$o$kol,"
+    sopt+="${options[$o]}"
   done
 
-  [[ $colors = l ]] && {
-    cmd+="-theme-str '*{
+  eval set -- "$(getopt --name "$__name" \
+    --options "$sopt" \
+    --longoptions "$lopt" \
+    -- "$@"
+  )"
+
+  while true; do
+    [[ $1 = -- ]] && option="$1" || {
+      option="${1##--}" 
+      option="${option##-}"
+      optarg="${2:-}" 
+    }
+
+    case "$option" in
+      v | version ) printinfo version  ; exit ;;
+      h | help    ) printinfo "${optarg}" ; exit ;;
+      
+      i|include  ) __incstring="${optarg}"  && shift     ;;
+      x|xpos     ) __xpos=${optarg} && shift             ;;
+      y|ypos     ) __ypos=${optarg}  && shift            ;;
+      w|width    ) __width=${optarg} && shift            ;;
+      o|options  ) __opts="${optarg}" && shift           ;;
+      p|prompt   ) __prompt="${optarg}" && shift         ;;
+      n|titlebar ) 
+         __xpos=$((i3list[AWX]-i3list[WSX]))
+         __ypos=$((i3list[AWY]-i3list[WSY]))
+         __width=${i3list[AWW]}
+        ;;
+      c|color    ) __colors=${optarg} && shift           ;;
+      f|filter   ) __cmd+="-filter '${optarg}' " && shift;;
+      l|list     ) __list="${optarg}" && shift           ;;
+      t|top      ) __top="${optarg}" && shift            ;;
+
+      -- ) shift ; break ;;
+      *  ) break ;;
+    esac
+    shift
+  done
+
+  [[ -n $__stdin ]] && __list="${__stdin}"
+
+
+  [[ $__colors = l ]] && {
+    __cmd+="-theme-str '*{
       background-color:    @act2;
       border-color:        @act2;
       text-color:          @act3;
@@ -57,8 +95,8 @@ main(){
     }' "
   }
 
-  [[ $colors = r ]] && {
-    cmd+="-theme-str '*{
+  [[ $__colors = r ]] && {
+    __cmd+="-theme-str '*{
       background-color:    @red;
       border-color:        @red;
       text-color:          @act2;
@@ -70,8 +108,8 @@ main(){
     }' "
   }
 
-  [[ $colors = d ]] && {
-    cmd+="-theme-str '*{
+  [[ $__colors = d ]] && {
+    __cmd+="-theme-str '*{
       background-color:    @act3;
       border-color:        @act3;
       text-color:          @act2;
@@ -83,48 +121,48 @@ main(){
     }' "
   }
 
-  [[ -n $prompt ]] \
-    && cmd+="-p ${prompt} " \
-    || incstring=${incstring/[p]/}
+  [[ -n $__prompt ]] \
+    && __cmd+="-p ${__prompt} " \
+    || __incstring=${__incstring/[p]/}
 
-  [[ -z $list ]] && {
-    incstring=${incstring/[l]/}
-    cmd+="-theme-str '#entry {expand: true; width: 0; }' "
+  [[ -z $__list ]] && {
+    __incstring=${__incstring/[l]/}
+    __cmd+="-theme-str '#entry {expand: true; width: 0; }' "
   } || {
-    cmd+="-theme-str '#listview {
+    __cmd+="-theme-str '#listview {
       layout:     horizontal;
       spacing:    5px;
-      lines:      $(echo "${list}" | wc -l);
+      lines:      $(echo "${__list}" | wc -l);
       dynamic:    true;
     }' "
   }
 
-  [[ $incstring =~ [p] ]] && inc+=(prompt)
-  [[ $incstring =~ [e] ]] && inc+=(entry)
-  [[ $incstring =~ [l] ]] && inc+=(listview)
+  [[ $__incstring =~ [p] ]] && inc+=(prompt)
+  [[ $__incstring =~ [e] ]] && inc+=(entry)
+  [[ $__incstring =~ [l] ]] && inc+=(listview)
 
-  incstring=${inc[*]}
+  __incstring=${inc[*]}
 
-  cmd+="-theme-str "
-  cmd+="'#horibox {children: [${incstring//' '/','}];}' "
+  __cmd+="-theme-str "
+  __cmd+="'#horibox {children: [${__incstring//' '/','}];}' "
 
-  [[ -n $xpos ]] \
-    && cmd+="-theme-str '#window {x-offset: ${xpos}px;}' "
+  [[ -n $__xpos ]] \
+    && __cmd+="-theme-str '#window {x-offset: ${__xpos}px;}' "
 
-  [[ -n $ypos ]] \
-    && cmd+="-theme-str '#window {y-offset: ${ypos}px;}' "
+  [[ -n $__ypos ]] \
+    && __cmd+="-theme-str '#window {y-offset: ${__ypos}px;}' "
 
-  [[ -n $width ]] && {
-    [[ $width =~ [%]$ ]] || width=${width}px
-    cmd+="-theme-str '#window {width: ${width};}' "
+  [[ -n $__width ]] && {
+    [[ $__width =~ [%]$ ]] || __width=${__width}px
+    __cmd+="-theme-str '#window {width: ${__width};}' "
   }
   
-  if [[ -n $list ]];then
-    printf '%s\n' "${top}" "__START" "${list}" | awk '
+  if [[ -n $__list ]];then
+    printf '%s\n' "${__top}" "__START" "${__list}" | awk '
     {
       if (start==1) {
         for (t in tops) {
-          if ($0==tops[t]){tfnd[NR]=$0} 
+          if ($0==tops[t]){tfnd[NR]=$0;topa[t]=$0} 
         }
         if (tfnd[NR]!=$0) {lst[NR]=$0}
       }
@@ -133,39 +171,41 @@ main(){
     }
 
     END {
-      for (f in tfnd){if (tfnd[f]){print tfnd[f]}}
+      for (f in topa){if (topa[f]){print topa[f]}}
       for (l in lst){print lst[l]}
     }
     '
-  fi | eval "${cmd} ${opts}"
+  fi | eval "${__cmd} ${__opts}"
 }
 
 themefile(){
-  cat "${THIS_DIR}/themevars.rasi"
+  cat "${__dir}/themevars.rasi"
   ((i3list[AWB]>=20)) \
     && sed "s/.*height[:].*/height: ${i3list[AWB]}px;/" \
-       "${THIS_DIR}/oneliner.rasi" \
-    || cat "${THIS_DIR}/oneliner.rasi" 
+       "${__dir}/oneliner.rasi" \
+    || cat "${__dir}/oneliner.rasi" 
 }
 
 printinfo(){
-about='`oneliner` - Wrapper for displaying oneline rofi menus
+about=\
+'`oneliner` - Wrapper for displaying oneline rofi menus
 
 SYNOPSIS
 --------
 
-`oneliner` [`-v`|`-h`]  
-`oneliner` `-i` [pel]  
-`oneliner` `-x` XPOS  
-`oneliner` `-y` YPOS  
-`oneliner` `-w` WIDTH[%]  
-`oneliner` `-o` OPTIONS  
-`oneliner` `-p` prompt  
-`oneliner` `-n`   
-`oneliner` `-c` d|l|r  
-`oneliner` `-f` filter  
-`oneliner` `-l` LIST  
-`oneliner` `-t` TOP  
+`oneliner` `-v`|`--version`  
+`oneliner` `-h`|`--help`  
+`oneliner` `-i`|`--include` [pel]  
+`oneliner` `-x`|`--xpos` XPOS  
+`oneliner` `-y`|`--ypos` YPOS  
+`oneliner` `-w`|`--width` WIDTH[%]  
+`oneliner` `-o`|`--options` OPTIONS  
+`oneliner` `-p`|`--prompt` prompt  
+`oneliner` `-n`|`--titlebar`   
+`oneliner` `-c`|`--color` d|l|r  
+`oneliner` `-f`|`--filter` filter  
+`oneliner` `-l`|`--list` LIST  
+`oneliner` `-t`|`--top` TOP  
 
 
 DESCRIPTION
@@ -192,7 +232,13 @@ one can specify that with the `-i` option.
 OPTIONS
 -------
 
-`-i` [pel]  
+`-v`|`--version`  
+Show version and exit.
+
+`-h`|`--help`  
+Show help and exit.
+
+`-i`|`--include` [pel]  
 (default: pel)  
 Argument for this option is a string containing the
 characters `pel`. It will force the appearance of the
@@ -208,10 +254,10 @@ The command above would have the same result as the first
 example, since p (prompt) is left out from the argument
 to `-i`  
 
-`-x` XPOS  
-`-y` YPOS  
-`-w` WIDTH[%]  
-`-n`   
+`-x`|`--xpos` XPOS  
+`-y`|`--ypos` YPOS  
+`-w`|`--width` WIDTH[%]  
+`-n`|`--titlebar`   
 (default: `-x 0, -y 0, -w 100%`)
 These options override the default position and width
 of the menu. If `-n` is set, the menu will have the
@@ -224,31 +270,31 @@ If the argument to `-w` (width) ends with a `%` character
 the width will be that many percentages of the screenwidth.
 Without `%` absolute width in pixels will be used.  
 
-`-o` OPTIONS  
+`-o`|`--options` OPTIONS  
 The argument is a string of aditional options to pass
 to `rofi`  
 
 
-`-c` d|l  
+`-c`|`--color` d|l  
 specify d or l for dark or light theme.
 
-`-f` filter  
-`-p` prompt  
+`-f`|`--filter` filter  
+`-p`|`--prompt` prompt  
 
-`-l` LIST  
+`-l`|`--list` LIST  
 Every line in LIST will be displayed as a menu item.
 The order will be the same as entered if not `-t` 
 is set.
 
-`-t` TOP  
+`-t`|`--top` TOP  
 If a line in TOP matches a line in LIST, that line
 will have priority in the menu.
 
 Example:  
 
 ``` text
-$ oneliner -l "$(print '%s\n' one two three four)" \
-           -t "$(print '%s\n' two four)"
+$ oneliner -l "$(printf '"'"'%s\n'"'"' one two three four)" \
+           -t "$(printf '"'"'%s\n'"'"' two four)"
 ```
 
 will result in a list looking like this:  
@@ -257,12 +303,12 @@ will result in a list looking like this:
 DEPENDENCIES
 ------------
 
-rofi
-i3list
+rofi  
+i3list  
 '
 
 bouthead="
-${NAME^^} 1 ${CREATED} Linux \"User Manuals\"
+${__name^^} 1 ${__created} Linux \"User Manuals\"
 =======================================
 
 NAME
@@ -273,26 +319,38 @@ boutfoot="
 AUTHOR
 ------
 
-${AUTHOR} <${CONTACT}>
+${__author} <${__contact}>
 <https://budrich.github.io>
 
 SEE ALSO
 --------
 
-rofi(1),i3list(1)
+rofi(1), i3list(1)
 "
 
 
   case "$1" in
-    m ) printf '%s' "# ${about}" > "${THIS_DIR}/README.md" ;;
+    # print version info to stdout
+    version )
+      printf '%s\n' \
+        "$__name - version: $__version" \
+        "updated: $__updated by $__author"
+      exit
+      ;;
+    # print help in markdown format to stdout
+    md ) printf '%s' "# ${about}" ;;
+
+    # print help in markdown format to README.md
+    mdg ) printf '%s' "# ${about}" > "${__dir}/README.md" ;;
     
-    f ) 
-      printf '%s' "${bouthead}"
-      printf '%s' "${about}"
-      printf '%s' "${boutfoot}"
+    # print help in troff format to __dir/__name.1
+    man ) 
+      printf '%s' "${bouthead}" "${about}" "${boutfoot}" \
+      | go-md2man > "${__dir}/${__name}.1"
     ;;
 
-    ''|* ) 
+    # print help to stdout
+    * ) 
       printf '%s' "${about}" | awk '
          BEGIN{ind=0}
          $0~/^```/{
@@ -310,15 +368,31 @@ rofi(1),i3list(1)
   esac
 }
 
-ERR(){ >&2 echo "[WARNING]" $@; }
-ERX(){ >&2 echo "[ERROR]" $@ && exit 1 ; }
+ERR(){ >&2 echo "[WARNING]" "$*"; }
+ERX(){ >&2 echo "[ERROR]" "$*" && exit 1 ; }
 
-if [ "$1" = "md" ]; then
-  printinfo m
-  exit
-elif [ "$1" = "man" ]; then
-  printinfo f
-  exit
-else
-  main "${@}"
-fi
+init(){
+  # set -o errexit
+  # set -o pipefail
+  # set -o nounset
+  # set -o xtrace
+
+  __source="$(readlink -f "${BASH_SOURCE[0]}")"
+  __dir="$(cd "$(dirname "${__source}")" && pwd)"
+}
+
+init
+# __lastarg="${!#:-}"
+
+__=""
+__stdin=""
+
+read -N1 -t0.01 __  && {
+  (( $? <= 128 ))  && {
+    IFS= read -rd '' __stdin
+    __stdin="$__$__stdin"
+  }
+}
+
+
+main "${@}"
