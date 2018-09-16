@@ -1,18 +1,24 @@
 #!/usr/bin/env bash
 
 __name="oneliner"
-__version="0.002"
+__version="0.003"
 __author="budRich"
 __contact='robstenklippa@gmail.com'
 __created="2018-07-21"
-__updated="2018-09-15"
+__updated="2018-09-16"
 
 main(){
   local option optarg kol lopt sopt o
 
   # globals
   __incstring=pel
-  __cmd="rofi -dmenu -theme <(themefile) " 
+  __cmd="rofi -theme <(themefile) "
+  # __cmd="rofi -dmenu -theme Arc "
+  __xpos=0
+  __ypos=0
+  __width=100%
+  __height=20
+  __orientation=horizontal
 
   declare -A i3list
   eval "$(i3list)"
@@ -32,6 +38,10 @@ main(){
   options[titlebar]=n
   options[list]=l:
   options[top]=t:
+  options[layout]=a:
+  options[theme]=e:
+  options[show]=:
+  options[modi]=:
 
   for o in "${!options[@]}"; do
     [[ ${options[$o]} =~ ([:]*)$ ]] \
@@ -57,21 +67,27 @@ main(){
       v | version ) printinfo version  ; exit ;;
       h | help    ) printinfo "${optarg}" ; exit ;;
       
-      i|include  ) __incstring="${optarg}"  && shift     ;;
-      x|xpos     ) __xpos=${optarg} && shift             ;;
-      y|ypos     ) __ypos=${optarg}  && shift            ;;
-      w|width    ) __width=${optarg} && shift            ;;
-      o|options  ) __opts="${optarg}" && shift           ;;
-      p|prompt   ) __prompt="${optarg}" && shift         ;;
-      n|titlebar ) 
-         __xpos=$((i3list[AWX]-i3list[WSX]))
-         __ypos=$((i3list[AWY]-i3list[WSY]))
-         __width=${i3list[AWW]}
-        ;;
-      c|color    ) __colors=${optarg} && shift           ;;
-      f|filter   ) __cmd+="-filter '${optarg}' " && shift;;
-      l|list     ) __list="${optarg}" && shift           ;;
-      t|top      ) __top="${optarg}" && shift            ;;
+      a|layout   ) __layout="${optarg}"    ; shift ;;
+      e|theme    ) __theme="${optarg}"     ; shift ;;
+      i|include  ) __incstring="${optarg}" ; shift ;;
+      x|xpos     ) __xpos=${optarg}        ; shift ;;
+      y|ypos     ) __ypos=${optarg}        ; shift ;;
+      w|width    ) __width=${optarg}       ; shift ;;
+      o|options  ) __opts+=" ${optarg}"      ; shift ;;
+      p|prompt   ) __prompt="${optarg}"    ; shift ;;
+      f|filter   ) __cmd+="-filter '${optarg}' " ; shift ;;
+      t|top      ) __top="${optarg}"             ; shift ;;
+      n|titlebar ) __layout=titlebar ;;
+      
+      show|modi )
+        __opts+=" -$option ${optarg}"
+        __nolist=1
+        shift
+      ;;
+
+      # remove these
+      l|list     ) __list="${optarg}"            ; shift ;;
+      c|color    ) __colors=${optarg}            ; shift ;;
 
       -- ) shift ; break ;;
       *  ) break ;;
@@ -79,85 +95,18 @@ main(){
     shift
   done
 
-  [[ -n $__stdin ]] && __list="${__stdin}"
+  if ((__nolist!=1)); then
+    __opts+=" -dmenu"
+    [[ -n $__stdin ]] && __list="${__stdin}"
+  else
+    __list=nolist
+  fi
 
+  dunstify ${__layout}
+  [[ -n ${__layout:-} ]] && setgeometry
+  setincludes
 
-  [[ $__colors = l ]] && {
-    __cmd+="-theme-str '*{
-      background-color:    @act2;
-      border-color:        @act2;
-      text-color:          @act3;
-      selbg:               @act3;
-      selfg:               @act2;
-      promptbg:            @act3;
-      promptfg:            @act2;
-      font:                @font1; 
-    }' "
-  }
-
-  [[ $__colors = r ]] && {
-    __cmd+="-theme-str '*{
-      background-color:    @red;
-      border-color:        @red;
-      text-color:          @act2;
-      selbg:               @act3;
-      selfg:               @act2;
-      promptbg:            @act2;
-      promptfg:            @red;
-      font:                @font1; 
-    }' "
-  }
-
-  [[ $__colors = d ]] && {
-    __cmd+="-theme-str '*{
-      background-color:    @act3;
-      border-color:        @act3;
-      text-color:          @act2;
-      selbg:               @act2;
-      selfg:               @act3;
-      promptbg:            @act2;
-      promptfg:            @act3;
-      font:                @font1; 
-    }' "
-  }
-
-  [[ -n $__prompt ]] \
-    && __cmd+="-p ${__prompt} " \
-    || __incstring=${__incstring/[p]/}
-
-  [[ -z $__list ]] && {
-    __incstring=${__incstring/[l]/}
-    __cmd+="-theme-str '#entry {expand: true; width: 0; }' "
-  } || {
-    __cmd+="-theme-str '#listview {
-      layout:     horizontal;
-      spacing:    5px;
-      lines:      $(echo "${__list}" | wc -l);
-      dynamic:    true;
-    }' "
-  }
-
-  [[ $__incstring =~ [p] ]] && inc+=(prompt)
-  [[ $__incstring =~ [e] ]] && inc+=(entry)
-  [[ $__incstring =~ [l] ]] && inc+=(listview)
-
-  __incstring=${inc[*]}
-
-  __cmd+="-theme-str "
-  __cmd+="'#horibox {children: [${__incstring//' '/','}];}' "
-
-  [[ -n $__xpos ]] \
-    && __cmd+="-theme-str '#window {x-offset: ${__xpos}px;}' "
-
-  [[ -n $__ypos ]] \
-    && __cmd+="-theme-str '#window {y-offset: ${__ypos}px;}' "
-
-  [[ -n $__width ]] && {
-    [[ $__width =~ [%]$ ]] || __width=${__width}px
-    __cmd+="-theme-str '#window {width: ${__width};}' "
-  }
-  
-  if [[ -n $__list ]];then
+  if [[ -n $__list ]] && ((__nolist!=1));then
     printf '%s\n' "${__top}" "__START" "${__list}" | awk '
     {
       if (start==1) {
@@ -178,12 +127,145 @@ main(){
   fi | eval "${__cmd} ${__opts}"
 }
 
+setincludes(){
+  local entry_expand entry_width listview_layout 
+  local window_content horibox_content listview_lines
+
+  [[ -n $__prompt ]] \
+    && __cmd+="-p ${__prompt} " \
+    || __incstring=${__incstring/[p]/}
+
+  if [[ -z $__list ]]; then
+    __incstring=${__incstring/[l]/}
+
+    entry_expand=true
+    entry_width=0
+
+  else
+    listview_layout=$__orientation
+    ((__nolist!=1)) \
+      && listview_lines="$(echo "${__list}" | wc -l)"
+  fi
+
+  [[ $__incstring =~ [p] ]] && inc+=(prompt)
+  [[ $__incstring =~ [e] ]] && inc+=(entry)
+
+  if [[ $__orientation = vertical ]]; then
+    __incstring=${inc[*]}
+    window_content="[ mainbox ]"
+    inputbar_content="[${__incstring//' '/','}]"
+  else
+    [[ $__incstring =~ [l] ]] && inc+=(listview)
+    __incstring=${inc[*]}
+    horibox_content="[${__incstring//' '/','}]"
+    window_content="[ horibox ]"
+  fi
+
+  __themelayout="
+  * {
+    window-content:   ${window_content:-[horibox,listview]};
+    horibox-content:  ${horibox_content:-[prompt, entry]};
+    window-width:     ${__width:-100%};
+    window-height:    ${__height:-20px};
+    window-x:         ${__xpos:-0}px;
+    window-y:         ${__ypos:-0}px;
+    listview-layout:  ${listview_layout:-horizontal};
+    listview-lines:   ${listview_lines:-50};
+    entry-expand:     ${entry_expand:-false};
+    entry-width:      ${entry_width:-10em};
+    inputbar-content: ${inputbar_content:-[prompt,entry]};
+  }
+  "
+
+}
+
+setgeometry(){
+  case "$__layout" in
+
+    titlebar  ) 
+      __ypos=$(((i3list[AWY]+i3list[WSY])+__ypos))
+      __xpos=$(((i3list[AWX]+i3list[WSX])+__xpos))
+      __width=${i3list[AWW]}
+      __height=${i3list[AWB]}
+      __orientation=horizontal
+    ;;
+
+    tab       ) 
+      if ((i3list[ATW]==i3list[AWW])); then
+        __xpos=$(((i3list[AWX]+i3list[WSX])))
+        __width=${i3list[AWW]}
+      else
+        __xpos=$((i3list[ATX]))
+        __width=${i3list[ATW]}
+      fi
+      __ypos=$(((i3list[AWY]+i3list[WSY])))
+      __height=${i3list[AWB]}
+      __orientation=horizontal
+    ;;
+
+    A|B|C|D ) 
+      [[ ${i3list[LVI]} =~ [${__layout}] ]] \
+        && [[ -n $__list ]] && {
+      case "$__layout" in
+        A) 
+          __xpos=0
+          __ypos=0
+          __width=${i3list[SAB]:-${i3list[WSW]}}
+          __height=${i3list[SAC]:-${i3list[WSH]}}
+        ;;
+
+        B) 
+          __xpos=${i3list[SAB]:-0}
+          __ypos=0
+          __width=$((i3list[WSW]-__xpos))
+          __height=${i3list[SBD]:-${i3list[WSH]}}
+        ;;
+
+        C) 
+          __xpos=0
+          __ypos=${i3list[SAC]:-0}
+          __width=${i3list[SAB]:-${i3list[WSW]}}
+          __height=$((i3list[WSH]-__ypos))
+        ;;
+
+        D) 
+          __xpos=${i3list[SAB]:-0}
+          __ypos=${i3list[SBD]:-0}
+          __width=$((i3list[WSW]-__xpos))
+          __height=$((i3list[WSH]-__ypos))
+        ;;
+      esac
+      __orientation=vertical
+    } ;;
+
+    window    )
+      [[ -n $__list ]] && {
+        dunstify hhhhhh
+        __xpos=$(((i3list[AWX]+i3list[WSX])+__xpos))
+        __ypos=$(((i3list[AWY]+i3list[WSY])+__ypos))
+        __width=${i3list[AWW]}
+        __height=${i3list[AWH]}
+        __orientation=vertical
+      }
+    ;;
+  esac
+
+  [[ $__layout != tab ]] \
+    && __ypos=$((__ypos==i3list[WSY]?i3list[AWB]:__ypos))
+
+  [[ $__width =~ [%]$ ]] || __width=${__width}px
+  __height="$((__height<20?20:__height))px"
+}
+
 themefile(){
-  cat "${__dir}/themevars.rasi"
-  ((i3list[AWB]>=20)) \
-    && sed "s/.*height[:].*/height: ${i3list[AWB]}px;/" \
-       "${__dir}/oneliner.rasi" \
-    || cat "${__dir}/oneliner.rasi" 
+  local themebase themefile themevars
+
+  themefile="${__dir}/themes/${__theme:-default}.rasi"
+  themebase="${__dir}/oneliner.rasi"
+  themevars="${__dir}/themevars.rasi"
+
+  echo "${__themelayout}"
+  cat "$themevars" "$themefile" "$themebase"
 }
 
 printinfo(){
