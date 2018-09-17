@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 __name="oneliner"
-__version="0.003"
+__version="0.004"
 __author="budRich"
 __contact='robstenklippa@gmail.com'
 __created="2018-07-21"
-__updated="2018-09-16"
+__updated="2018-09-17"
 
 main(){
   local option optarg kol lopt sopt o
@@ -13,7 +13,6 @@ main(){
   # globals
   __incstring=pel
   __cmd="rofi -theme <(themefile) "
-  # __cmd="rofi -dmenu -theme Arc "
   __xpos=0
   __ypos=0
   __width=100%
@@ -77,15 +76,15 @@ main(){
       p|prompt   ) __prompt="${optarg}"    ; shift ;;
       f|filter   ) __cmd+="-filter '${optarg}' " ; shift ;;
       t|top      ) __top="${optarg}"             ; shift ;;
-      n|titlebar ) __layout=titlebar ;;
       
       show|modi )
-        __opts+=" -$option ${optarg}"
+        __opts+=" -$option '${optarg}'"
         __nolist=1
         shift
       ;;
 
       # remove these
+      n|titlebar ) __layout=titlebar ;;
       l|list     ) __list="${optarg}"            ; shift ;;
       c|color    ) __colors=${optarg}            ; shift ;;
 
@@ -102,7 +101,6 @@ main(){
     __list=nolist
   fi
 
-  dunstify ${__layout}
   [[ -n ${__layout:-} ]] && setgeometry
   setincludes
 
@@ -240,7 +238,6 @@ setgeometry(){
 
     window    )
       [[ -n $__list ]] && {
-        dunstify hhhhhh
         __xpos=$(((i3list[AWX]+i3list[WSX])+__xpos))
         __ypos=$(((i3list[AWY]+i3list[WSY])+__ypos))
         __width=${i3list[AWW]}
