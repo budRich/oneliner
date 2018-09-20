@@ -1,31 +1,31 @@
 * {
-  fg:          #988d6d;
-  bg:          #FFFFD8;
+  fg:          #4b575a;
+  bg:          #babaa9;
 
-  activefg:    #FFFFE8;
-  activehl:    #424242;
-  activebg:    #8888c8;
+  activefg:    #eee8d5;
+  activehl:    #3f3f3f;
+  activebg:    #4c83ad;
 
-  inactivefg:  #988d6d;
-  inactivebg:  #e8eb98;
+  inactivefg:  #babaa9;
+  inactivebg:  #445e67;
 
-  red:         #b85c57;
-  green:       #40883f;
-  blue:        #0287c8;
-  yellow:      #989848;
-  cyan:        #4fa8a8;
-  magenta:     #8888c8;
+  red:         #D4665D;
+  green:       #61854e;
+  blue:        #4c83ad;
+  yellow:      #b58900;
+  cyan:        #445e67;
+  magenta:     #6b7db4;
 
-  light:       #FFFFE8;
-  dark:        #424242;
+  light:       #eee8d5;
+  dark:        #3f3f3f;
 
-  fg2:         #B8B09A;
-  comment:     #B8B09A;
+  fg2:         #6e776e;
+  comment:     #6e776e;
 
-  bg2:         #FFFFE8;
+  bg2:         #A4A493;
 
-  selectedfg:  #FFFFE8;
-  selectedbg:  #8888c8;
+  selectedfg:  #eee8d5;
+  selectedbg:  #8d938d;
 
   font1: "FixedFixedsys 12";
 }
