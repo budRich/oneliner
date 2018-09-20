@@ -1,11 +1,11 @@
 #!/usr/bin/env bash
 
 __name="oneliner"
-__version="0.004"
+__version="0.005"
 __author="budRich"
 __contact='robstenklippa@gmail.com'
 __created="2018-07-21"
-__updated="2018-09-17"
+__updated="2018-09-20"
 
 main(){
   local option optarg kol lopt sopt o
@@ -247,11 +247,9 @@ setgeometry(){
     ;;
   esac
 
-  [[ $__layout != tab ]] \
-    && __ypos=$((__ypos==i3list[WSY]?i3list[AWB]:__ypos))
-
   [[ $__width =~ [%]$ ]] || __width=${__width}px
-  __height="$((__height<20?20:__height))px"
+  ((__height<20)) && __height=20
+  __height+="px"
 }
 
 themefile(){
